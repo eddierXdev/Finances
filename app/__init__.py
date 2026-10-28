@@ -1,0 +1,1 @@
+"""Resale Manager application package."""

@@ -1,0 +1,1 @@
+"""Presentation layer (desktop UI)."""
