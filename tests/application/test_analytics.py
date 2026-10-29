@@ -13,6 +13,7 @@ from app.application.analytics import (
     GetConsolidatedReport,
     GetInventoryValue,
     GetProductPerformance,
+    GetSalesEvolution,
     GetSupplierProfitability,
 )
 from app.application.exchange_rates import (
@@ -511,6 +512,30 @@ def test_business_summary_accounts_for_discounts_returns_and_expenses(
     assert summary.cross_currency_sale_count == 0
     assert summary.margins[0].gross_margin == Decimal("56.5217")
     assert summary.margins[0].net_margin == Decimal("42.0290")
+
+
+def test_sales_evolution_matches_summary_revenue_by_day(db_session) -> None:
+    _scenario(db_session)
+
+    evolution = GetSalesEvolution(
+        _analytics(db_session),
+        SqlAlchemyExchangeRateRepository(db_session),
+    ).execute(
+        PERIOD,
+        as_of=LATER_STILL,
+        base_currency=_currency(db_session),
+    )
+
+    assert evolution.granularity == "day"
+    assert [point.revenue for point in evolution.points] == [
+        Money("46.00", _currency(db_session)),
+        Money("-11.50", _currency(db_session)),
+        Money("0.00", _currency(db_session)),
+    ]
+    assert sum(
+        (point.revenue.amount for point in evolution.points),
+        Decimal("0"),
+    ) == Decimal("34.50")
 
 
 def test_product_performance_ranks_best_sellers_profit_and_slow_stock(

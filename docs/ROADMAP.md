@@ -288,7 +288,9 @@ Implement:
 
 ---
 
-## Phase 14 — Hardening
+## Phase 14 - Hardening
+
+Status: complete.
 
 Before V1 release:
 

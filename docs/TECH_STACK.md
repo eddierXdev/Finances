@@ -92,14 +92,19 @@ Avoid adding heavy dependencies prematurely.
 
 ### Packaging
 
-V1 development:
+V1 uses a **PyInstaller** one-folder build for a portable Windows desktop
+distribution:
 
 ```text
 pyproject.toml
 virtual environment
+PyInstaller (packaging extra)
 ```
 
-Later desktop distribution can use PyInstaller or another packaging tool after the app is stable.
+The build bundles the Alembic migrations and keeps application data beside the
+executable. See `scripts/build_desktop.ps1` and
+`packaging/resale_manager.spec`. The executable applies pending migrations at
+startup; `alembic upgrade head` remains available for development diagnostics.
 
 ---
 
@@ -114,6 +119,7 @@ pyside6-essentials
 httpx
 pytest
 pytest-cov
+pyinstaller  # packaging extra
 ```
 
 Do not install everything on day one if the current milestone does not need it.

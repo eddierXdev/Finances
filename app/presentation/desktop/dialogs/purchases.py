@@ -836,7 +836,9 @@ class PurchaseDetailDialog(QDialog):
             "Date",
             QLabel(purchase.purchase_date.date().isoformat(), self),
         )
-        summary.addRow("Supplier", QLabel(_value(purchase.supplier_name), self))
+        summary.addRow(
+            "Supplier", QLabel(_value(purchase.supplier_name), self)
+        )
         summary.addRow(
             "Status", QLabel(purchase_status_label(purchase.status), self)
         )

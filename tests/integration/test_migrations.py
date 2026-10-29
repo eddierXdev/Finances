@@ -10,7 +10,7 @@ from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine, inspect, text
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-HEAD_REVISION = "0010_expenses"
+HEAD_REVISION = "0012_query_indexes"
 
 
 def _alembic_config(database_url: str) -> Config:
@@ -36,12 +36,14 @@ def test_migrations_apply_to_a_clean_database(tmp_path: Path) -> None:
             currency_count = connection.execute(
                 text("SELECT COUNT(*) FROM currencies")
             ).scalar_one()
+        tables = set(inspect(engine).get_table_names())
     finally:
         engine.dispose()
 
     assert version == HEAD_REVISION
     assert ScriptDirectory.from_config(config).get_current_head() == HEAD_REVISION
     assert currency_count == 7
+    assert "settings" in tables
     assert database_path.is_file()
 
 

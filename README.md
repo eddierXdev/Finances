@@ -40,10 +40,10 @@ Read in this order:
 
 ## Current State
 
-Phases 0-11 completed (bootstrap, money/currency, product catalog, accounts and
-ledger, purchases, receiving, inventory lots, FIFO sales, customer returns,
-supplier returns, expenses, capital, exchange-rate providers and analytics).
-Phase 12 (Desktop UI) is in progress with the application shell and navigation:
+Phases 0-14 are complete (bootstrap through hardening). Phase 12 (Desktop UI),
+Phase 13 (Backup / Restore / Export) and Phase 14 (Hardening) include a fully
+navigable desktop application, portable Windows executable and the following
+capabilities:
 
 - Python virtual environment support
 - `pyproject.toml` with SQLAlchemy, Alembic, pydantic-settings, httpx and
@@ -124,8 +124,8 @@ Phase 12 (Desktop UI) is in progress with the application shell and navigation:
   missing-rate reporting and cash-capital ROI
 - `BASE_CURRENCY` and `ANALYTICS_SLOW_MOVING_DAYS` configuration
 - PySide6 desktop shell with sidebar navigation and one screen per section
-- Placeholder screens isolated from business logic, ready to be replaced
-  incrementally by use-case-driven views
+- Use-case-driven screens that never read the database, select FIFO lots or
+  calculate balances, COGS or profit in the presentation layer
 - Products screen with catalog search, inactive-product toggle and refresh
 - Create/edit product dialogs with category, brand, default price, currency and
   an optional initial variant
@@ -145,20 +145,78 @@ Phase 12 (Desktop UI) is in progress with the application shell and navigation:
 - Read-only purchase detail with item lines, normalized costs and totals
 - Full-payment and logistics-status dialogs driven by the existing purchase use
   cases, without duplicating financial rules in the UI
+- Receiving screen for purchases in transit with partial or complete receipts
+  and per-line remaining quantities
+- Inventory screen with stock, traceable lots and signed movement history
+- Sales screen with FIFO allocation, historical COGS and read-only sale detail
+- Returns screen for customer and supplier returns, including exact sale lines,
+  purchase lots and optional refunds
+- Expenses & Capital screen for expenses, contributions, withdrawals,
+  same-currency transfers and explicit currency exchanges
+- Currency Rates screen with latest-rate freshness, append-only history and
+  manual observation entry
+- Dashboard with base-currency KPIs, missing-rate warnings, account balances,
+  best sellers and slow-moving stock
+- Analytics screen with optional period filters, profitability, slow-moving and
+  supplier reports
+- Settings screen showing the effective environment configuration
+- Local SQLite backups created through SQLite's consistent online backup API
+- Restore validation for SQLite integrity, foreign keys, schema revision and
+  required tables
+- Automatic pre-restore safety backup and in-place atomic restore
+- Backup folder persisted with the application data; default configured through
+  `BACKUP_DIRECTORY`
+- ZIP export of selected accounts, inventory, purchases, sales and returns as
+  UTF-8 CSV files
+- Settings actions for changing the backup folder, creating/restoring backups
+  and exporting selected business information
+- Reusable read-only table model and form helpers for consistent screens
 - Application-level `UnitOfWork` boundary with a SQLAlchemy implementation, so
   screens never open sessions or commit transactions
 - Alembic migrations with the initial currencies seeded
+- Pending migrations applied automatically before the UI or diagnostics start
+- Compound indexes for ordered purchase-item, variant and lot history queries
+- Corrupt databases, invalid backup folders and unsafe restores fail with a
+  clear error instead of partially opening the application
+- Portable PyInstaller desktop build with migrations bundled inside the
+  executable distribution
 - pytest test suite (domain, application, integration and presentation)
 
-Next milestone (in progress):
+V1 status:
 
 ```text
+Phase 14 — Hardening (complete)
+✔ Full suite and clean-database migration checks
+✔ Corrupted/invalid input and offline-mode checks
+✔ Stale FX and backup/restore checks
+✔ Query indexes and SQLite query-plan review
+✔ Desktop executable packaging
+```
+
+Completed:
+
+```text
+Phase 13 — Backup / Restore / Export
+✔ Local SQLite backup
+✔ Restore validation
+✔ Basic ZIP/CSV export
+✔ Backup location setting
+✔ Automatic pre-restore safety backup
+
 Phase 12 — Desktop UI
 ✔ App shell and navigation
 ✔ Products screen (list, search, create/edit/deactivate, variants, attributes)
 ✔ Accounts screen (native balances, create and deactivate)
 ✔ Purchases screen (list, search, create, costs, payments, status, suppliers)
-→ Receiving screen
+✔ Receiving screen (partial and complete receipts)
+✔ Inventory screen (stock, lots, movements)
+✔ Sales screen (FIFO sales, COGS and detail)
+✔ Returns screen (customer and supplier returns)
+✔ Expenses & Capital screen (expenses, capital, transfers, exchanges)
+✔ Currency Rates screen (latest, history and manual rates)
+✔ Dashboard (base-currency KPIs and product highlights)
+✔ Analytics (period filters, profitability and supplier reports)
+✔ Settings (effective configuration, backup/restore and export actions)
 ```
 
 FIFO allocations are immutable and remain the source of truth for historical
@@ -166,6 +224,10 @@ sale COGS. Supplier return items reference their exact inventory lot and
 snapshot its historical unit cost; the original purchase is never rewritten.
 Expenses never modify historical purchase costs. Exchange-rate providers never
 invent missing rates or overwrite historical observations.
+
+Backup restore is intentionally schema-strict: a backup must match the current
+schema revision. After an application upgrade, create a fresh backup; older
+backups are rejected instead of risking an inconsistent restore.
 
 ## Getting Started
 
@@ -176,9 +238,8 @@ pip install -e ".[dev]"
 
 copy .env.example .env
 
-alembic upgrade head
-python -m app.main
-python -m app.main --check   # database diagnostics without opening the UI
+python -m app.main              # applies migrations and opens the UI
+python -m app.main --check      # applies/verifies the schema and exits
 pytest
 ```
 
@@ -188,3 +249,41 @@ On POSIX systems, replace the activation and copy commands with:
 source .venv/bin/activate
 cp .env.example .env
 ```
+
+## Desktop Executable (Windows)
+
+Build a portable, one-folder executable with PyInstaller:
+
+```text
+.\scripts\build_desktop.ps1 -Clean
+```
+
+The build script installs PyInstaller when missing, bundles the Alembic
+migrations and copies `.env.example` and this README beside the executable. The
+result is:
+
+```text
+dist\ResaleManager\ResaleManager.exe
+dist\ResaleManager\data\resale_manager.db   # created on first launch
+```
+
+Builder note: `build_desktop.ps1` recreates `dist\ResaleManager`, so do not
+rebuild over a folder that contains live business data. Copy the built folder to
+a separate location for daily use.
+
+The executable is portable as a folder: copy or move the complete
+`dist\ResaleManager` directory together, not only the `.exe`. It uses its own
+directory as the working directory, so `data/` and backups live beside the
+executable. Place an optional `.env` in the same folder to override settings.
+Database migrations run automatically on first launch and after upgrades.
+
+For diagnostics without opening the UI, run `--check`. Because release builds are
+windowed, the report is also written beside the executable:
+
+```text
+dist\ResaleManager\ResaleManager.exe --check
+dist\ResaleManager\diagnostics.txt
+```
+
+Startup failures are written to `dist\ResaleManager\startup-error.log` (or the
+equivalent folder) and shown in a dialog for normal GUI launches.

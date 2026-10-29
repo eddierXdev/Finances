@@ -5,6 +5,15 @@ from app.application.analytics.business_summary import GetBusinessSummary
 from app.application.analytics.consolidated_report import (
     GetConsolidatedReport,
 )
+from app.application.analytics.dashboard_charts import (
+    ChartAmount,
+    ChartGranularity,
+    ChartQuantity,
+    DashboardChartData,
+    GetSalesEvolution,
+    SalesEvolution,
+    SalesEvolutionPoint,
+)
 from app.application.analytics.inventory_value import GetInventoryValue
 from app.application.analytics.models import (
     AccountBalance,
@@ -44,14 +53,19 @@ __all__ = [
     "AnalyticsPeriod",
     "AnalyticsRepository",
     "BusinessSummary",
+    "ChartAmount",
+    "ChartGranularity",
+    "ChartQuantity",
     "ConsolidatedReport",
     "CurrencyMargin",
     "CustomerReturnAllocationRecord",
+    "DashboardChartData",
     "ExpenseRecord",
     "GetAccountBalances",
     "GetBusinessSummary",
     "GetConsolidatedReport",
     "GetInventoryValue",
+    "GetSalesEvolution",
     "GetProductPerformance",
     "GetSupplierProfitability",
     "InventoryLotRecord",
@@ -62,6 +76,8 @@ __all__ = [
     "ProductPerformanceReport",
     "ProductProfitability",
     "SaleAllocationRecord",
+    "SalesEvolution",
+    "SalesEvolutionPoint",
     "SlowMovingProduct",
     "SupplierProfitability",
     "SupplierProfitabilityReport",

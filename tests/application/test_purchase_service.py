@@ -191,7 +191,9 @@ def test_purchase_service_lists_creates_pays_and_updates(
         )
 
 
-def test_reference_data_and_unpaid_purchase(service, catalog, accounts) -> None:
+def test_reference_data_and_unpaid_purchase(
+    service, catalog, accounts
+) -> None:
     usd = _usd(service)
     supplier = _supplier(service)
     variant = _variant(service, catalog)

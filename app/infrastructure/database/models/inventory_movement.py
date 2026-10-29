@@ -70,6 +70,16 @@ class InventoryMovementModel(Base):
         ),
         Index("ix_inventory_movements_variant_id", "variant_id"),
         Index("ix_inventory_movements_movement_date", "movement_date"),
+        Index(
+            "ix_inventory_movements_variant_id_movement_date",
+            "variant_id",
+            "movement_date",
+        ),
+        Index(
+            "ix_inventory_movements_inventory_lot_id_movement_date",
+            "inventory_lot_id",
+            "movement_date",
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

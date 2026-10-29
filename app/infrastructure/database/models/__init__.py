@@ -42,6 +42,7 @@ from app.infrastructure.database.models.purchase_cost_allocation import (
 from app.infrastructure.database.models.purchase_item import PurchaseItemModel
 from app.infrastructure.database.models.sale import SaleModel
 from app.infrastructure.database.models.sale_item import SaleItemModel
+from app.infrastructure.database.models.setting import SettingModel
 from app.infrastructure.database.models.return_lot_allocation import (
     ReturnLotAllocationModel,
 )
@@ -85,6 +86,7 @@ __all__ = [
     "SaleItemLotAllocationModel",
     "SaleItemModel",
     "SaleModel",
+    "SettingModel",
     "SupplierModel",
     "SupplierReturnItemModel",
     "SupplierReturnModel",

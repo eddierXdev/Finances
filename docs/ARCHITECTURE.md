@@ -118,7 +118,9 @@ resale_manager/
 │   │   ├── currencies/
 │   │   ├── customers/
 │   │   ├── suppliers/
-│   │   └── analytics/
+│   │   ├── analytics/
+│   │   ├── backup/
+│   │   └── exports/
 │   │
 │   ├── infrastructure/
 │   │   ├── database/
@@ -737,6 +739,10 @@ UpdateExchangeRates
 SetManualExchangeRate
 CalculateDashboard
 GenerateProfitReport
+CreateBackup
+ValidateBackup
+RestoreBackup
+ExportBusinessData
 ```
 
 The UI calls use cases, never the database directly.

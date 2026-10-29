@@ -36,6 +36,11 @@ class InventoryLotModel(Base):
             "variant_id",
             "received_at",
         ),
+        Index(
+            "ix_inventory_lots_purchase_item_id_received_at",
+            "purchase_item_id",
+            "received_at",
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

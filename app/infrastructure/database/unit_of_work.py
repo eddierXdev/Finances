@@ -8,19 +8,35 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.infrastructure.database.repositories import (
     SqlAlchemyAccountRepository,
+    SqlAlchemyAccountTransferRepository,
+    SqlAlchemyAnalyticsRepository,
     SqlAlchemyAttributeRepository,
     SqlAlchemyAttributeValueRepository,
+    SqlAlchemyCapitalMovementRepository,
     SqlAlchemyCategoryRepository,
     SqlAlchemyCurrencyRepository,
+    SqlAlchemyCustomerRepository,
+    SqlAlchemyCustomerReturnItemRepository,
+    SqlAlchemyCustomerReturnRepository,
     SqlAlchemyExchangeRateRepository,
+    SqlAlchemyExpenseRepository,
     SqlAlchemyFinancialTransactionRepository,
+    SqlAlchemyInventoryLotRepository,
+    SqlAlchemyInventoryMovementRepository,
     SqlAlchemyProductRepository,
     SqlAlchemyProductVariantRepository,
     SqlAlchemyPurchaseCostAllocationRepository,
     SqlAlchemyPurchaseCostRepository,
     SqlAlchemyPurchaseItemRepository,
     SqlAlchemyPurchaseRepository,
+    SqlAlchemyReturnLotAllocationRepository,
+    SqlAlchemySaleItemLotAllocationRepository,
+    SqlAlchemySaleItemRepository,
+    SqlAlchemySaleRepository,
+    SqlAlchemySettingsRepository,
     SqlAlchemySupplierRepository,
+    SqlAlchemySupplierReturnItemRepository,
+    SqlAlchemySupplierReturnRepository,
 )
 
 
@@ -49,6 +65,30 @@ class SqlAlchemyUnitOfWork:
             SqlAlchemyPurchaseCostAllocationRepository(session)
         )
         self.exchange_rates = SqlAlchemyExchangeRateRepository(session)
+        self.inventory_lots = SqlAlchemyInventoryLotRepository(session)
+        self.inventory_movements = SqlAlchemyInventoryMovementRepository(session)
+        self.customers = SqlAlchemyCustomerRepository(session)
+        self.sales = SqlAlchemySaleRepository(session)
+        self.sale_items = SqlAlchemySaleItemRepository(session)
+        self.sale_allocations = SqlAlchemySaleItemLotAllocationRepository(
+            session
+        )
+        self.customer_returns = SqlAlchemyCustomerReturnRepository(session)
+        self.customer_return_items = (
+            SqlAlchemyCustomerReturnItemRepository(session)
+        )
+        self.return_allocations = SqlAlchemyReturnLotAllocationRepository(
+            session
+        )
+        self.supplier_returns = SqlAlchemySupplierReturnRepository(session)
+        self.supplier_return_items = (
+            SqlAlchemySupplierReturnItemRepository(session)
+        )
+        self.expenses = SqlAlchemyExpenseRepository(session)
+        self.capital_movements = SqlAlchemyCapitalMovementRepository(session)
+        self.transfers = SqlAlchemyAccountTransferRepository(session)
+        self.analytics = SqlAlchemyAnalyticsRepository(session)
+        self.settings = SqlAlchemySettingsRepository(session)
 
     def __enter__(self) -> SqlAlchemyUnitOfWork:
         return self

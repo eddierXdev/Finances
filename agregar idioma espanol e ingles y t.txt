@@ -1,0 +1,42 @@
+Prompt diseno 
+@pyside-desktop-ui
+@designing-user-experience
+@reviewing-interface-quality
+@building-accessible-interfaces
+
+Review the current Resale Manager desktop UI.
+
+Do not change Domain or Application business logic.
+
+Goal:
+Improve the visual quality so the application no longer looks like a basic/default Qt application.
+
+Focus on:
+- sidebar
+- page headers
+- typography hierarchy
+- spacing
+- dashboard cards
+- tables
+- forms
+- buttons
+- status badges
+- empty states
+- light/dark theme consistency
+- English/Spanish layout compatibility
+
+Rules:
+- Reuse components.
+- Centralize styling.
+- Do not scatter inline styles.
+- Do not redesign all screens at once.
+- Start with the application shell and Dashboard only.
+- Preserve existing functionality.
+
+First audit the current UI and list:
+1. Critical issues
+2. Important improvements
+3. Reusable component opportunities
+4. Theme/localization issues
+
+Then implement only the app shell and Dashboard improvements.

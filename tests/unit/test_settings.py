@@ -31,11 +31,13 @@ def test_default_settings_target_the_local_data_directory(monkeypatch) -> None:
     monkeypatch.delenv("ELTOQUE_API_TOKEN", raising=False)
     monkeypatch.delenv("ELTOQUE_API_URL", raising=False)
     monkeypatch.delenv("ELTOQUE_TIMEOUT_SECONDS", raising=False)
+    monkeypatch.delenv("BACKUP_DIRECTORY", raising=False)
 
     settings = Settings(_env_file=None)
 
     assert settings.app_env == "development"
     assert settings.database_url == "sqlite:///./data/resale_manager.db"
+    assert settings.backup_directory == "./data/backups"
     assert settings.base_currency == "USD"
     assert settings.analytics_slow_moving_days == 30
     assert settings.fx_provider == "MANUAL"
@@ -87,5 +89,19 @@ def test_base_currency_must_be_a_three_letter_code(
 def test_slow_moving_days_must_be_positive(monkeypatch) -> None:
     monkeypatch.setenv("ANALYTICS_SLOW_MOVING_DAYS", "0")
 
+    with pytest.raises(ValueError):
+        Settings(_env_file=None)
+
+
+def test_backup_directory_can_be_overridden_and_cannot_be_blank(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("BACKUP_DIRECTORY", f" {tmp_path / 'backups'} ")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.backup_directory == str(tmp_path / "backups")
+
+    monkeypatch.setenv("BACKUP_DIRECTORY", "   ")
     with pytest.raises(ValueError):
         Settings(_env_file=None)

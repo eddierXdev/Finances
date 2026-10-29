@@ -10,6 +10,7 @@ from app.infrastructure.config.settings import Settings
 from app.presentation.desktop.app import build_main_window
 from app.presentation.desktop.navigation import NAVIGATION_ITEMS
 from app.presentation.desktop.pages import PlaceholderPage
+from app.presentation.desktop.views.settings import SettingsPage
 
 
 def _window(base_currency: str = "USD"):
@@ -44,8 +45,12 @@ def test_shell_builds_one_screen_per_item(qapp) -> None:
 
         for item in NAVIGATION_ITEMS:
             page = stack.widget(NAVIGATION_ITEMS.index(item))
-            assert isinstance(page, PlaceholderPage)
-            assert page.objectName() == f"page-{item.key}"
+            if item.key == "settings":
+                assert isinstance(page, SettingsPage)
+                assert page.objectName() == "settingsPage"
+            else:
+                assert isinstance(page, PlaceholderPage)
+                assert page.objectName() == f"page-{item.key}"
 
             title = page.findChild(QLabel, "pageTitle")
             assert title is not None

@@ -78,6 +78,9 @@ from app.infrastructure.database.repositories.sale_item_repository import (
 from app.infrastructure.database.repositories.sale_repository import (
     SqlAlchemySaleRepository,
 )
+from app.infrastructure.database.repositories.settings_repository import (
+    SqlAlchemySettingsRepository,
+)
 from app.infrastructure.database.repositories.supplier_repository import (
     SqlAlchemySupplierRepository,
 )
@@ -115,6 +118,7 @@ __all__ = [
     "SqlAlchemySaleItemLotAllocationRepository",
     "SqlAlchemySaleItemRepository",
     "SqlAlchemySaleRepository",
+    "SqlAlchemySettingsRepository",
     "SqlAlchemySupplierRepository",
     "SqlAlchemySupplierReturnItemRepository",
     "SqlAlchemySupplierReturnRepository",

@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     database_url: str = "sqlite:///./data/resale_manager.db"
     base_currency: str = "USD"
+    backup_directory: str = "./data/backups"
 
     fx_provider: Literal["MANUAL", "ELTOQUE"] = "MANUAL"
     fx_auto_update: bool = False
@@ -48,6 +49,16 @@ class Settings(BaseSettings):
     def _normalize_fx_provider(cls, value):
         if isinstance(value, str):
             return value.strip().upper()
+        return value
+
+    @field_validator("backup_directory", mode="before")
+    @classmethod
+    def _normalize_backup_directory(cls, value):
+        if isinstance(value, str):
+            normalized = value.strip()
+            if not normalized:
+                raise ValueError("backup_directory cannot be empty.")
+            return normalized
         return value
 
 

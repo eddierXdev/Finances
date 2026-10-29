@@ -7,11 +7,8 @@ from collections.abc import Mapping
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
-    QFrame,
     QHBoxLayout,
     QLabel,
-    QListWidget,
-    QListWidgetItem,
     QMainWindow,
     QMessageBox,
     QStackedWidget,
@@ -19,8 +16,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.presentation.desktop.i18n.translator import Translator
 from app.presentation.desktop.navigation import NavigationItem
-from app.presentation.desktop.styles import APP_STYLESHEET
+from app.presentation.desktop.navigation.sidebar import Sidebar
 
 
 class MainWindow(QMainWindow):
@@ -37,6 +35,7 @@ class MainWindow(QMainWindow):
         *,
         app_name: str = "Resale Manager",
         base_currency: str | None = None,
+        translator: Translator | None = None,
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
@@ -54,51 +53,36 @@ class MainWindow(QMainWindow):
         self._pages = dict(pages)
         self._keys = [item.key for item in items]
         self._selecting = False
+        self._app_name = app_name
+        self._base_currency = base_currency
+        self._translator = translator or Translator()
 
         self.setWindowTitle(app_name)
         self.setMinimumSize(960, 600)
         self.resize(1180, 720)
-        self.setStyleSheet(APP_STYLESHEET)
 
-        self._build_menu(app_name)
-        self._build_status_bar(base_currency)
-        self._build_ui(app_name)
+        self._build_menu()
+        self._build_status_bar()
+        self._build_ui()
+        self._translator.language_changed.connect(self.retranslate)
+        self.retranslate()
         self.select_page(self._keys[0])
 
-    def _build_ui(self, app_name: str) -> None:
+    def _build_ui(self) -> None:
         central = QWidget(self)
         layout = QHBoxLayout(central)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        sidebar = QFrame(central)
-        sidebar.setObjectName("sidebar")
-        sidebar.setFixedWidth(240)
-
-        sidebar_layout = QVBoxLayout(sidebar)
-        sidebar_layout.setContentsMargins(0, 0, 0, 0)
-        sidebar_layout.setSpacing(0)
-
-        brand = QLabel(app_name, sidebar)
-        brand.setObjectName("brand")
-        sidebar_layout.addWidget(brand)
-
-        brand_subtitle = QLabel("Resale operations", sidebar)
-        brand_subtitle.setObjectName("brandSubtitle")
-        sidebar_layout.addWidget(brand_subtitle)
-
-        self._navigation = QListWidget(sidebar)
-        self._navigation.setObjectName("navigation")
-        self._navigation.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self._navigation.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        self._sidebar = Sidebar(
+            self._items,
+            app_name=self._app_name,
+            base_currency=self._base_currency,
+            translator=self._translator,
+            parent=central,
         )
-        for item in self._items:
-            row = QListWidgetItem(item.title)
-            row.setData(Qt.ItemDataRole.UserRole, item.key)
-            self._navigation.addItem(row)
+        self._navigation = self._sidebar.navigation
         self._navigation.currentRowChanged.connect(self._on_row_changed)
-        sidebar_layout.addWidget(self._navigation, 1)
 
         content = QWidget(central)
         content.setObjectName("content")
@@ -112,43 +96,65 @@ class MainWindow(QMainWindow):
             self._stack.addWidget(self._pages[item.key])
         content_layout.addWidget(self._stack)
 
-        layout.addWidget(sidebar)
+        layout.addWidget(self._sidebar)
         layout.addWidget(content, 1)
         self.setCentralWidget(central)
 
-    def _build_menu(self, app_name: str) -> None:
-        file_menu = self.menuBar().addMenu("&File")
+    def _build_menu(self) -> None:
+        self._file_menu = self.menuBar().addMenu("")
+        self._exit_action = QAction(self)
+        self._exit_action.setShortcut(QKeySequence.StandardKey.Quit)
+        self._exit_action.triggered.connect(self.close)
+        self._file_menu.addAction(self._exit_action)
 
-        exit_action = QAction("E&xit", self)
-        exit_action.setShortcut(QKeySequence.StandardKey.Quit)
-        exit_action.triggered.connect(self.close)
-        file_menu.addAction(exit_action)
+        self._help_menu = self.menuBar().addMenu("")
+        self._about_action = QAction(self)
+        self._about_action.triggered.connect(self._show_about)
+        self._help_menu.addAction(self._about_action)
 
-        help_menu = self.menuBar().addMenu("&Help")
+    def _build_status_bar(self) -> None:
+        self._status_bar = self.statusBar()
+        self._offline_label = QLabel(self)
+        self._offline_label.setObjectName("statusBadge")
+        self._offline_label.setProperty("tone", "success")
+        self._status_bar.addPermanentWidget(self._offline_label)
 
-        about_action = QAction(f"&About {app_name}", self)
-        about_action.triggered.connect(self._show_about)
-        help_menu.addAction(about_action)
+        self._currency_label: QLabel | None = None
+        if self._base_currency:
+            self._currency_label = QLabel(self)
+            self._currency_label.setObjectName("baseCurrencyLabel")
+            self._status_bar.addPermanentWidget(self._currency_label)
 
-    def _build_status_bar(self, base_currency: str | None) -> None:
-        status = self.statusBar()
-        status.showMessage("Ready")
-
-        offline = QLabel("Offline-first", self)
-        status.addPermanentWidget(offline)
-
-        if base_currency:
-            currency = QLabel(f"Base currency: {base_currency}", self)
-            currency.setObjectName("baseCurrencyLabel")
-            status.addPermanentWidget(currency)
+    def retranslate(self) -> None:
+        """Refresh shell strings after a language change."""
+        t = self._translator.tr
+        self._file_menu.setTitle(t("app.menu.file"))
+        self._exit_action.setText(t("app.menu.exit"))
+        self._help_menu.setTitle(t("app.menu.help"))
+        self._about_action.setText(
+            t("app.menu.about", app_name=self._app_name)
+        )
+        self._sidebar.retranslate()
+        self._status_bar.showMessage(t("app.status.ready"))
+        self._offline_label.setText(t("app.status.offline"))
+        if self._currency_label is not None:
+            self._currency_label.setText(
+                t(
+                    "app.status.base_currency",
+                    currency=self._base_currency,
+                )
+            )
 
     def _show_about(self) -> None:
         QMessageBox.about(
             self,
-            f"About {self.windowTitle()}",
-            "Offline-first resale management.\n\n"
-            "Business calculations live in the application and domain layers; "
-            "the UI only presents their results.",
+            self._translator.tr(
+                "app.about.title",
+                app_name=self._app_name,
+            ),
+            self._translator.tr(
+                "app.about.text",
+            ),
         )
 
     def _on_row_changed(self, row: int) -> None:
